@@ -2,8 +2,8 @@ library(tidyverse)
 library(haven)
 library(intsvy)
 library(countrycode)
-
-reverse_name <- function(x) setNames(names(x), as.character(x))
+library(cimentadaj)
+library(lazyeval)
 
 # Function recevies a variable with an attribute label
 # and recodes the variable to availabe lables
@@ -20,7 +20,6 @@ variable_labeller <- function(variable) {
     variable
   }
 }
-
 
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/CY6_MS_CMB_STU_QQQ.sav")
 pisa2015 <- pisa_2015
@@ -49,13 +48,12 @@ missing_labels <- c("Valid Skip",
 # vector
 
 subset_vars <- which(map_lgl(pisa2015, function(x)
-  !is.null(attr(x, "labels")) &&
-    length(setdiff(names(attr(x, "labels")),
-                   missing_labels)) >= 1))
+  !is.null(attr(x, "labels")) && length(setdiff(names(attr(x, "labels")), missing_labels)) >= 1))
 
 # Sample 1 variable from the valid variables from subset_vars
 # Combine it with the country variable and turn it all into a data.frame
 valid_df <- as.data.frame(pisa2015[c("cnt", sample(names(subset_vars), 1))])
+head(valid_df)
 
 # Labels of the random variable from valid_df free of the missing labels
 (test <- setdiff(names(attr(valid_df[, names(valid_df)[2], drop = T], "labels")), missing_labels))
@@ -69,13 +67,20 @@ while (length(test) > 4) {
 
 # Get the labels from the random variable
 (labels <- reverse_name(attr(valid_df[, names(valid_df)[2], drop = T], 'labels')))
+var_name <- names(valid_df)[2]
 
-valid_df %>%
+valid_df <- valid_df[complete.cases(valid_df), ]
+
+var_list <- setNames(list(interp(~ y[x], x = var_name, y = labels)), var_name)
+
+try_df <-
+  valid_df %>%
   filter(cnt %in% c("Brazil", "France", "Dominican Republic", "Colombia")) %>%
-  pisa.table(names(valid_df)[2], data = ., by = "cnt") %>%
-  mutate(st103q08na = labels[st103q08na]) %>%
-  ggplot(aes(reorder(cnt, -Percentage), Percentage, fill = st103q08na)) +
+  pisa.table(var_name, data = ., by = "cnt")
+try_df[var_name] <- labels[try_df[, var_name]]
+
+try_df %>%
+  ggplot(aes_string("cnt", "Percentage", fill = var_name)) +
   geom_col(position = "dodge") +
-  labs(y = NULL, x = attr(valid_df$st103q08na, 'label')) +
+  labs(x = attr(valid_df[, var_name], 'label')) +
   scale_fill_discrete(name = NULL)
-  
