@@ -24,6 +24,7 @@ variable_labeller <- function(variable) {
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/CY6_MS_CMB_STU_QQQ.sav")
 pisa2015 <- pisa_2015
 names(pisa2015) <- tolower(names(pisa2015))
+pisa2015$region <- countrycode(pisa2015$cnt, "iso3c", "continent")
 
 # Saving country names and their equivalency
 country_attributes <- attr(pisa2015$cnt, "labels")
@@ -47,40 +48,67 @@ missing_labels <- c("Valid Skip",
 # and have other labels besides the missing_labels
 # vector
 
+# ec011q05na
+  
 subset_vars <- which(map_lgl(pisa2015, function(x)
   !is.null(attr(x, "labels")) && length(setdiff(names(attr(x, "labels")), missing_labels)) >= 1))
 
 # Sample 1 variable from the valid variables from subset_vars
 # Combine it with the country variable and turn it all into a data.frame
-valid_df <- as.data.frame(pisa2015[c("cnt", sample(names(subset_vars), 1))])
+valid_df <- as.data.frame(pisa2015[c("cnt", "region", sample(names(subset_vars), 1))])
 head(valid_df)
 
 # Labels of the random variable from valid_df free of the missing labels
-(test <- setdiff(names(attr(valid_df[, names(valid_df)[2], drop = T], "labels")), missing_labels))
+(test <- setdiff(names(attr(valid_df[, names(valid_df)[3], drop = T], "labels")), missing_labels))
 
 # While the length of the test vector is > 4, sample a new variable.
 # This is done because we don't want really long labels
 while (length(test) > 4) {
-  valid_df <- as.data.frame(pisa2015[c("cnt", sample(names(subset_vars), 1))])
-  test <- setdiff(names(attr(valid_df[, names(valid_df)[2], drop = T], "labels")), missing_labels)
+  valid_df <- as.data.frame(pisa2015[c("cnt", "region", sample(names(subset_vars), 1))])
+  test <- setdiff(names(attr(valid_df[, names(valid_df)[3], drop = T], "labels")), missing_labels)
 }
 
 # Get the labels from the random variable
-(labels <- reverse_name(attr(valid_df[, names(valid_df)[2], drop = T], 'labels')))
-var_name <- names(valid_df)[2]
-
-valid_df <- valid_df[complete.cases(valid_df), ]
-
-var_list <- setNames(list(interp(~ y[x], x = var_name, y = labels)), var_name)
+(labels <- reverse_name(attr(valid_df[, names(valid_df)[3], drop = T], 'labels')))
+var_name <- names(valid_df)[3]
 
 try_df <-
   valid_df %>%
-  filter(cnt %in% c("Brazil", "France", "Dominican Republic", "Colombia")) %>%
-  pisa.table(var_name, data = ., by = "cnt")
+  filter(!is.na(region)) %>%
+  pisa.table(var_name, data = ., by = "cnt") %>%
+  filter(complete.cases(.))
+
 try_df[var_name] <- labels[try_df[, var_name]]
 
-try_df %>%
-  ggplot(aes_string("cnt", "Percentage", fill = var_name)) +
-  geom_col(position = "dodge") +
+len_labels <- length(unique(try_df[, var_name]))
+
+(first_graph <-
+  try_df %>%
+  group_by(cnt) %>%
+  arrange(Percentage) %>%
+  ggplot(aes(cnt, Percentage)) +
+  geom_point(aes_string(colour = var_name)) +
   labs(x = attr(valid_df[, var_name], 'label')) +
-  scale_fill_discrete(name = NULL)
+  scale_colour_discrete(name = NULL) +
+  theme(legend.position = "top") +
+  guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1,
+                                    ifelse(len_labels <= 4 & len_labels > 2, 2, 3)),
+                             byrow=TRUE)) +
+  coord_flip())
+
+setwd("/Users/cimentadaj/Downloads/twitter")
+ggsave("first_graph.png")
+
+# devtools::install_github("geoffjentry/twitteR")
+library(twitteR)
+
+api_key             <- Sys.getenv("twitter_api_key")
+api_secret          <- Sys.getenv("twitter_api_secret")
+access_token        <- Sys.getenv("twitter_access_token")
+access_token_secret <- Sys.getenv("twitter_access_token_secret")
+setup_twitter_oauth(api_key, api_secret, access_token, access_token_secret)
+
+tweet("", mediaPath = "./first_graph.png")
+
+# to automate
+# https://www.r-bloggers.com/programming-a-twitter-bot-and-the-rescue-from-procrastination/
