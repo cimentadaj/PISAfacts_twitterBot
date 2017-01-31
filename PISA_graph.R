@@ -22,6 +22,7 @@ variable_labeller <- function(variable) {
 }
 
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/CY6_MS_CMB_STU_QQQ.sav")
+
 pisa2015 <- pisa_2015
 names(pisa2015) <- tolower(names(pisa2015))
 pisa2015$region <- countrycode(pisa2015$cnt, "iso3c", "continent")
@@ -48,8 +49,6 @@ missing_labels <- c("Valid Skip",
 # and have other labels besides the missing_labels
 # vector
 
-# ec011q05na
-  
 subset_vars <- which(map_lgl(pisa2015, function(x)
   !is.null(attr(x, "labels")) && length(setdiff(names(attr(x, "labels")), missing_labels)) >= 1))
 
@@ -62,7 +61,7 @@ head(valid_df)
 (test <- setdiff(names(attr(valid_df[, names(valid_df)[3], drop = T], "labels")), missing_labels))
 
 # While the length of the test vector is > 4, sample a new variable.
-# This is done because we don't want really long labels
+# This is done because we don't want a lot of labels
 while (length(test) > 4) {
   valid_df <- as.data.frame(pisa2015[c("cnt", "region", sample(names(subset_vars), 1))])
   test <- setdiff(names(attr(valid_df[, names(valid_df)[3], drop = T], "labels")), missing_labels)
@@ -87,14 +86,15 @@ len_labels <- length(unique(try_df[, var_name]))
   group_by(cnt) %>%
   arrange(Percentage) %>%
   ggplot(aes(cnt, Percentage)) +
-  geom_point(aes_string(colour = var_name)) +
+  geom_col(aes_string(fill = var_name), position = "stack") +
   labs(x = attr(valid_df[, var_name], 'label')) +
-  scale_colour_discrete(name = NULL) +
+  scale_fill_discrete(name = NULL) +
   theme(legend.position = "top") +
-  guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1,
-                                    ifelse(len_labels <= 4 & len_labels > 2, 2, 3)),
+  guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1, 2)), # why only less than 2 labels? 
+                                                                    # Because I only pick variable with
+                                                                    # <= 4 labels
                              byrow=TRUE)) +
-  coord_flip())
+  coord_flip()
 
 setwd("/Users/cimentadaj/Downloads/twitter")
 ggsave("first_graph.png")
