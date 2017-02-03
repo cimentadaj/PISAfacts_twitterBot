@@ -1,9 +1,8 @@
+cut <- 60
 
-cut <- 50
-
-# sentence <- title
+# sentence <- title_question
 # start <- 1
-# cutoff <- 40
+# cutoff <- cut
 
 # This function accepts a sentence (or better, a title) and cuts it between
 # start and cutoff ( just as substr). But if the cutoff is not an empty space
@@ -11,7 +10,7 @@ cut <- 50
 # an empty space. It will return from start to the new cutoff
 sentence_cut <- function(sentence, start, cutoff) {
   
-  if (cutoff == nchar(sentence)) return(substr(sentence, start, cutoff))
+  if (nchar(sentence) <= cutoff) return(substr(sentence, start, cutoff))
   
   excerpt <- substr(sentence, start, cutoff)
   actual_val <- cutoff
@@ -19,17 +18,17 @@ sentence_cut <- function(sentence, start, cutoff) {
   
   if (!substr(excerpt, actual_val, actual_val) == " ") {
     
-    expr <- c(substr(title, neg_val, neg_val) == " ", substr(title, pos_val, pos_val) == " ")
+    expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
     
     while (!any(expr)) {
     neg_val <- neg_val - 1
     pos_val <- pos_val + 1
     
-    expr <- c(substr(title, neg_val, neg_val) == " ", substr(title, pos_val, pos_val) == " ")
+    expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
     }
     
     cutoff <- ifelse(which(expr) == 1, neg_val, pos_val)
-    excerpt <- substr(title, start, cutoff)
+    excerpt <- substr(sentence, start, cutoff)
     return(excerpt)
     
   } else {
@@ -40,32 +39,29 @@ sentence_cut <- function(sentence, start, cutoff) {
 }
 
 # How many lines should this new title have? Based on the cut off
-sentence_vecs <- round(nchar(title) / cut, 0)
+sentence_vecs <- round(nchar(title_question) / cut, 0)
 list_excerpts <- replicate(sentence_vecs, vector("character", 0))
 
 # Create an empty list with the amount of lines for the excerpts
 # to be stored.
 
-test <- sentence_cut(title, 1, cut)
-test2 <- sentence_cut(title, nchar(test), 90)
-test3 <- sentence_cut(title, nchar(test) + nchar(test2), 90)
+# list_excerpts[[1]] <- sentence_cut(title_question, 1, cut)
+# list_excerpts[[2]] <- sentence_cut(title_question, nchar(list_excerpts[[1]]), nchar(list_excerpts[[1]]) + cut)
 
-ggplot(mtcars, aes(mpg, cyl)) + geom_point() + labs(x = paste(test, test2, sep = "\n"))
+for (list_index in seq_along(list_excerpts)) {
+  non_empty_list <- Filter(f = function(x) !(is_empty(x)), list_excerpts)
+  
+  start <- ifelse(list_index == 1, 1, sum(map_dbl(non_empty_list, nchar)))
+  
+  list_excerpts[[list_index]] <-
+    sentence_cut(title_question, start, ifelse(list_index == 1, cut, start + cut))
+}
+
+final_title <- paste(list_excerpts, collapse = "\n")
+
+
+ggplot(mtcars, aes(mpg, cyl)) + geom_point() + labs(x = final_title)
 
 # Experimental section. Trying to dynamically divide the sentence into sentence_vec chunks
 # and fill them up with the corresponding chunks, just as in the previous example where 3
 # vectors where needed.
-
-# THe ideal would be dynamically populate the list excerpts with the test objects from above
-for (x in seq_len(sentence_vecs)) {
-  sentence_cut(title, ifelse(x == 1, 1, nchar(list_excerpts[[x - 1]])),
-                      ifelse(x == length(list_excerpts), nchar(title), cut <- cut + 20))
-}
-
-list_excerpts[[1]] <- sentence_cut(title, 1, cut)
-list_excerpts[[2]] <- sentence_cut(title, nchar(list_excerpts[[1]]), nchar(title))
-
-x <- 1
-test <- sentence_cut(title, ifelse(x == 1, 1, nchar(list_excerpts[[x - 1]])),
-             ifelse(x == length(list_excerpts), nchar(title), cut))
-
