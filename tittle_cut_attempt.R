@@ -58,10 +58,3 @@ for (list_index in seq_along(list_excerpts)) {
 }
 
 final_title <- paste(list_excerpts, collapse = "\n")
-
-
-ggplot(mtcars, aes(mpg, cyl)) + geom_point() + labs(x = final_title)
-
-# Experimental section. Trying to dynamically divide the sentence into sentence_vec chunks
-# and fill them up with the corresponding chunks, just as in the previous example where 3
-# vectors where needed.

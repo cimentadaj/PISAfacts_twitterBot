@@ -82,19 +82,77 @@ try_df[var_name] <- labels[try_df[, var_name]]
 
 len_labels <- length(unique(try_df[, var_name]))
 
+
+## Section: Get the title
+title_question <- attr(valid_df[, var_name], 'label') # Title
+cut <- 60 # Arbitrary cutoff
+
+# This function accepts a sentence (or better, a title) and cuts it between
+# the start and cutoff arguments ( just as substr). But if the cutoff is not an empty space
+# it will search +-1 index by index from the cutoff point until it reaches
+# the closest empty space. It will return from start to the new cutoff
+sentence_cut <- function(sentence, start, cutoff) {
+  
+  if (nchar(sentence) <= cutoff) return(substr(sentence, start, cutoff))
+  
+  excerpt <- substr(sentence, start, cutoff)
+  actual_val <- cutoff
+  neg_val <- pos_val <- actual_val
+  
+  if (!substr(excerpt, actual_val, actual_val) == " ") {
+    
+    expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
+    
+    while (!any(expr)) {
+      neg_val <- neg_val - 1
+      pos_val <- pos_val + 1
+      
+      expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
+    }
+    
+    cutoff <- ifelse(which(expr) == 1, neg_val, pos_val)
+    excerpt <- substr(sentence, start, cutoff)
+    return(excerpt)
+    
+  } else {
+    
+    return(excerpt)
+    
+  }
+}
+
+# How many lines should this new title have? Based on the cut off
+sentence_vecs <- round(nchar(title_question) / cut, 0)
+list_excerpts <- replicate(sentence_vecs, vector("character", 0))
+
+# Create an empty list with the amount of lines for the excerpts
+# to be stored.
+
+for (list_index in seq_along(list_excerpts)) {
+  non_empty_list <- Filter(f = function(x) !(is_empty(x)), list_excerpts)
+  
+  start <- ifelse(list_index == 1, 1, sum(map_dbl(non_empty_list, nchar)))
+  
+  list_excerpts[[list_index]] <-
+    sentence_cut(title_question, start, ifelse(list_index == 1, cut, start + cut))
+}
+
+final_title <- paste(list_excerpts, collapse = "\n")
+
 (first_graph <-
   try_df %>%
-  group_by(cnt) %>%
-  arrange(Percentage) %>%
-  ggplot(aes(cnt, Percentage)) +
-  geom_point(aes_string(colour = var_name)) +
-  labs(x = attr(valid_df[, var_name], 'label')) +
-  scale_colour_discrete(name = NULL) +
+  ggplot(aes(reorder(cnt, -Percentage), Percentage)) +
+  geom_col(aes_string(fill = var_name), position = "stack") +
+  labs(y = final_title, x = NULL) +
+  scale_fill_discrete(name = NULL) +
   theme(legend.position = "top") +
+  scale_y_continuous(labels = paste0(seq(0, 100, 20), "%"), breaks = seq(0, 100, 20)) +
   guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1,
-                                    ifelse(len_labels <= 4 & len_labels > 2, 2, 3)),
-                             byrow=TRUE)) +
+                                    ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
   coord_flip())
+
+#TODO: Title is still cut in variable "st094q01na" (probably due to the sentence_vecs var)
+#TODO: The label order is not correct in variable "st094q01na".
 
 setwd("/Users/cimentadaj/Downloads/twitter")
 ggsave("first_graph.png")
