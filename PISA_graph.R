@@ -1,4 +1,5 @@
 library(tidyverse)
+library(forcats)
 library(haven)
 library(intsvy)
 library(countrycode)
@@ -48,15 +49,14 @@ missing_labels <- c("Valid Skip",
 # and have other labels besides the missing_labels
 # vector
 
-# ec011q05na
-  
 subset_vars <- which(map_lgl(pisa2015, function(x)
   !is.null(attr(x, "labels")) && length(setdiff(names(attr(x, "labels")), missing_labels)) >= 1))
 
 # Sample 1 variable from the valid variables from subset_vars
 # Combine it with the country variable and turn it all into a data.frame
 valid_df <- as.data.frame(pisa2015[c("cnt", "region", sample(names(subset_vars), 1))])
-head(valid_df)
+
+random_countries <- unique(valid_df$cnt)
 
 # Labels of the random variable from valid_df free of the missing labels
 (test <- setdiff(names(attr(valid_df[, names(valid_df)[3], drop = T], "labels")), missing_labels))
@@ -122,7 +122,7 @@ sentence_cut <- function(sentence, start, cutoff) {
 }
 
 # How many lines should this new title have? Based on the cut off
-sentence_vecs <- round(nchar(title_question) / cut, 0)
+sentence_vecs <- ceiling(nchar(title_question) / cut)
 list_excerpts <- replicate(sentence_vecs, vector("character", 0))
 
 # Create an empty list with the amount of lines for the excerpts
@@ -141,18 +141,15 @@ final_title <- paste(list_excerpts, collapse = "\n")
 
 (first_graph <-
   try_df %>%
-  ggplot(aes(reorder(cnt, -Percentage), Percentage)) +
-  geom_col(aes_string(fill = var_name), position = "stack") +
+  ggplot(aes(fct_reorder2(cnt, scchange, Percentage), Percentage)) +
+  geom_point(aes_string(colour = var_name)) +
   labs(y = final_title, x = NULL) +
-  scale_fill_discrete(name = NULL) +
+  scale_colour_discrete(name = NULL) +
   theme(legend.position = "top") +
-  scale_y_continuous(labels = paste0(seq(0, 100, 20), "%"), breaks = seq(0, 100, 20)) +
+  scale_y_continuous(labels = paste0(seq(0, 100, 10), "%"), breaks = seq(0, 100, 10)) +
   guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1,
                                     ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
   coord_flip())
-
-#TODO: Title is still cut in variable "st094q01na" (probably due to the sentence_vecs var)
-#TODO: The label order is not correct in variable "st094q01na".
 
 setwd("/Users/cimentadaj/Downloads/twitter")
 ggsave("first_graph.png")
