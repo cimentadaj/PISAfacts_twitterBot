@@ -142,20 +142,6 @@ final_title <- paste(list_excerpts, collapse = "\n")
 
 (first_graph <-
   try_df %>%
-<<<<<<< HEAD
-  group_by(cnt) %>%
-  arrange(Percentage) %>%
-  ggplot(aes(cnt, Percentage)) +
-  geom_col(aes_string(fill = var_name), position = "stack") +
-  labs(x = attr(valid_df[, var_name], 'label')) +
-  scale_fill_discrete(name = NULL) +
-  theme(legend.position = "top") +
-  guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1, 2)), # why only less than 2 labels? 
-                                                                    # Because I only pick variable with
-                                                                    # <= 4 labels
-                             byrow=TRUE)) +
-  coord_flip()
-=======
   ggplot(aes(fct_reorder2(cnt, scchange, Percentage), Percentage)) +
   geom_point(aes_string(colour = var_name)) +
   labs(y = final_title, x = NULL) +
@@ -165,7 +151,6 @@ final_title <- paste(list_excerpts, collapse = "\n")
   guides(colour = guide_legend(nrow = ifelse(len_labels <= 2, 1,
                                     ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
   coord_flip())
->>>>>>> title_cutter
 
 setwd("/Users/cimentadaj/Downloads/twitter")
 ggsave("first_graph.png")
