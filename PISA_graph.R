@@ -147,7 +147,7 @@ final_title <- paste(list_excerpts, collapse = "\n")
   scale_colour_discrete(name = NULL) +
   theme(legend.position = "top") +
   scale_y_continuous(labels = paste0(seq(0, 100, 10), "%"), breaks = seq(0, 100, 10)) +
-  guides(fill = guide_legend(nrow = ifelse(len_labels <= 2, 1,
+  guides(colour = guide_legend(nrow = ifelse(len_labels <= 2, 1,
                                     ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
   coord_flip())
 
