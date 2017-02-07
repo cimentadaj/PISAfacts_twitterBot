@@ -140,14 +140,23 @@ for (list_index in seq_along(list_excerpts)) {
 
 final_title <- paste(list_excerpts, collapse = "\n")
 
+dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
+                             x = quote(cnt),
+                             y = as.name(var_name),
+                             z = quote(Percentage))), "cnt")
+
+
 (first_graph <-
   try_df %>%
-  ggplot(aes(fct_reorder2(cnt, scchange, Percentage), Percentage)) +
+  mutate_(.dots = dots) %>%
+  ggplot(aes(cnt, Percentage)) +
   geom_point(aes_string(colour = var_name)) +
   labs(y = final_title, x = NULL) +
   scale_colour_discrete(name = NULL) +
   theme(legend.position = "top") +
-  scale_y_continuous(labels = paste0(seq(0, 100, 10), "%"), breaks = seq(0, 100, 10)) +
+  scale_y_continuous(labels = paste0(seq(0, 100, 10), "%"),
+                     breaks = seq(0, 100, 10),
+                     limits = c(0, 100)) +
   guides(colour = guide_legend(nrow = ifelse(len_labels <= 2, 1,
                                     ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
   coord_flip())
