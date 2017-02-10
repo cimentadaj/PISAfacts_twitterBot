@@ -140,26 +140,20 @@ for (list_index in seq_along(list_excerpts)) {
 
 final_title <- paste(list_excerpts, collapse = "\n")
 
-dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
-                             x = quote(cnt),
-                             y = as.name(var_name),
-                             z = quote(Percentage))), "cnt")
+label_class <-
+  c("2" = "labeltwo", '3' = "labelthree", '4' = "labelfour")[as.character(len_labels)]
 
+class(try_df) <- c(class(try_df), label_class)
 
+source("./ggplot_funs.R")
 (first_graph <-
-  try_df %>%
-  mutate_(.dots = dots) %>%
-  ggplot(aes(cnt, Percentage)) +
-  geom_point(aes_string(colour = var_name)) +
-  labs(y = final_title, x = NULL) +
-  scale_colour_discrete(name = NULL) +
-  theme(legend.position = "top") +
-  scale_y_continuous(labels = paste0(seq(0, 100, 10), "%"),
-                     breaks = seq(0, 100, 10),
-                     limits = c(0, 100)) +
-  guides(colour = guide_legend(nrow = ifelse(len_labels <= 2, 1,
-                                    ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
-  coord_flip())
+  pisa_graph(data = try_df,
+             y_title = final_title,
+             fill_var = var_name,
+             length_labels = len_labels))
+
+# TODO: You need to cut legend labels as you cut the
+# final_title
 
 setwd("/Users/cimentadaj/Downloads/twitter")
 ggsave("first_graph.png")

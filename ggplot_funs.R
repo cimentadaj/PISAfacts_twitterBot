@@ -1,32 +1,44 @@
-pisa_graph <- function(data, x, y) UseMethod("pisa_graph")
+pisa_graph <- function(data, y_title, fill_var, length_labels) UseMethod("pisa_graph")
 
-pisa_graph.labeltwo <- function(df, x, y, colour_var) {
-  print(expr_text(eval(colour_var)))
-  print(expr_text(x))
-  print(expr_text(y))
-  ggplot(aes_string(expr_text(x), expr_text(y))) +
-    geom_point(aes_string(colour = expr_text(colour_var)))
-}
-
-class(try_df) <- c("labeltwo", class(try_df))
-
-
-pisa_graph(try_df, cnt, Percentage, var_name)
-
-class(mtcars) <- c("labeltwo", class(mtcars))
-
-
-
-try_df %>%
+pisa_graph.labeltwo <- function(data, y_title, fill_var, length_labels) {
+  
+  dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
+                               x = quote(cnt),
+                               y = as.name(fill_var),
+                               z = quote(Percentage))), "cnt")
+  
+  data %>%
   mutate_(.dots = dots) %>%
   ggplot(aes(cnt, Percentage)) +
-  geom_point(aes_string(colour = var_name)) +
-  labs(y = final_title, x = NULL) +
-  scale_colour_discrete(name = NULL) +
-  theme(legend.position = "top") +
-  scale_y_continuous(labels = paste0(seq(0, 100, 10), "%"),
-                     breaks = seq(0, 100, 10),
-                     limits = c(0, 100)) +
-  guides(colour = guide_legend(nrow = ifelse(len_labels <= 2, 1,
-                                             ifelse(len_labels <= 4 & len_labels > 2, 2, 3)))) +
-  coord_flip()
+    geom_point(aes_string(colour = fill_var)) +
+    labs(y = y_title, x = NULL) +
+    scale_colour_discrete(name = NULL) +
+    theme(legend.position = "top") +
+    guides(colour = guide_legend(
+      nrow = ifelse(length_labels <= 2, 1,
+             ifelse(length_labels <= 4 & length_labels > 2, 2, 3)))) +
+    coord_flip()
+}
+
+pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
+
+  dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
+                               x = quote(cnt),
+                               y = as.name(fill_var),
+                               z = quote(Percentage))), "cnt")
+  
+  data %>%
+    filter(cnt %in% sample(unique(cnt), 15)) %>%
+    mutate_(.dots = dots) %>%
+    ggplot(aes_string("cnt", fill_var)) +
+    geom_point(aes_string(colour = fill_var,
+                          size = "Percentage")) +
+    labs(y = y_title, x = NULL) +
+    scale_colour_discrete(guide = F) +
+    scale_size_continuous(guide = F) +
+    coord_flip()
+}
+
+pisa_graph.labelfour <- function(data, y_title, fill_var, length_labels) {
+  pisa_graph.labelthree(data, y_title, fill_var, length_labels)
+}
