@@ -61,33 +61,32 @@ subset_vars <-
 
 # Sample 1 variable from the valid variables from subset_vars
 # Combine it with the country variable and turn it all into a data.frame
-valid_df <- 
-  int_data %>%
-  select_("cnt", "region", sample(names(subset_vars), 1)) %>%
+valid_df_fun <- function(data, vars_select) {
+  data %>%
+  select_("cnt", "region", sample(names(vars_select), 1)) %>%
   as.data.frame()
+}
+
+valid_df <- valid_df_fun(int_data, subset_vars)
 
 random_countries <- unique(valid_df$cnt)
 
 # Labels of the random variable from valid_df free of the missing labels
 var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels')
-test <-
-  var_labels %>%
-  names() %>%
-  setdiff(missing_labels)
 
+test_funs <- function(variable_label, miss) {
+  variable_label %>%
+    names() %>%
+    setdiff(miss)
+}
+
+test <- test_funs(var_labels, missing_labels)
 # While the length of the test vector is > 4, sample a new variable.
 # This is done because we don't want a lot of labels
 while (length(test) > 4) {
-  
-  valid_df <- 
-    int_data %>%
-    select_("cnt", "region", sample(names(subset_vars), 1)) %>%
-    as.data.frame()
-  
-  test <-
-    var_labels %>%
-    names() %>%
-    setdiff(missing_labels)
+  valid_df <- valid_df_fun(int_data, subset_vars)
+  var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels')
+  test <- test_funs(var_labels, missing_labels)
 }
 
 # Get the labels from the random variable
