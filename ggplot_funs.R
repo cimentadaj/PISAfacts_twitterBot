@@ -8,6 +8,7 @@ pisa_graph.labeltwo <- function(data, y_title, fill_var, length_labels) {
                                z = quote(Percentage))), "cnt")
   
   data %>%
+  filter(cnt %in% sample(unique(cnt), 15)) %>%
   mutate_(.dots = dots) %>%
   ggplot(aes(cnt, Percentage)) +
     geom_point(aes_string(colour = fill_var)) +
