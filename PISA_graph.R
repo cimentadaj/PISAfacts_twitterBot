@@ -6,21 +6,21 @@ library(countrycode)
 library(cimentadaj)
 library(lazyeval)
 
-# Function recevies a variable with an attribute label
-# and recodes the variable to availabe lables
-# Returns the same variable with new codings
-variable_labeller <- function(variable) {
-  
-  if (!is.null(attr(variable, "labels"))) {
-    
-    var_attr <- attributes(variable)
-    label_changer <- reverse_name(attr(variable, "labels"))
-    variable <- label_changer[variable]
-    
-    attributes(variable) <- var_attr
-    variable
-  }
-}
+# # Function recevies a variable with an attribute label
+# # and recodes the variable to availabe lables
+# # Returns the same variable with new codings
+# variable_labeller <- function(variable) {
+#   
+#   if (!is.null(attr(variable, "labels"))) {
+#     
+#     var_attr <- attributes(variable)
+#     label_changer <- reverse_name(attr(variable, "labels"))
+#     variable <- label_changer[variable]
+#     
+#     attributes(variable) <- var_attr
+#     variable
+#   }
+# }
 
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/PISA2015/CY6_MS_CMB_STU_QQQ.sav")
 
@@ -34,19 +34,18 @@ missing_labels <- c("Valid Skip",
 
 int_data <- pisa_2015
 names(int_data) <- tolower(names(int_data))
-
 int_data$region <- countrycode(int_data[[country_var]], country_types, "continent")
 
 # Saving country names and their equivalency
-country_attributes <- attr(int_data[[country_var]], "labels")
+country_labels <- attr(int_data[[country_var]], "labels")
 
 # Reversing the 3 CHR code to names so I can search for countries
 # in a lookup table
-country_names <- reverse_name(country_attributes)
+country_names <- reverse_name(country_labels)
 
 # Lookup 3 CHR code and change them for long country names
-int_data[, country_var] <- country_names[int_data$cnt]
-attr(int_data[[country_var]], "labels") <- country_attributes
+int_data[, country_var] <- country_names[int_data[[country_var]]]
+attr(int_data[[country_var]], "labels") <- country_labels
 
 # Get variables which have a 'labels' attribute
 # and have other labels besides the missing_labels
