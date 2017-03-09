@@ -71,25 +71,32 @@ valid_df <- valid_df_fun(int_data, subset_vars)
 random_countries <- unique(valid_df$cnt)
 
 # Labels of the random variable from valid_df free of the missing labels
-var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels')
+var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels') # Get labels
 
-test_funs <- function(variable_label, miss) {
+# Get unique labels
+valid_labels <- function(variable_label, miss) {
   variable_label %>%
     names() %>%
     setdiff(miss)
 }
 
-test <- test_funs(var_labels, missing_labels)
+len_labels <- length(valid_labels(var_labels, missing_labels)) # length of unique labels
+
 # While the length of the test vector is > 4, sample a new variable.
 # This is done because we don't want a lot of labels
-while (length(test) > 4) {
+while (len_labels > 4) {
   valid_df <- valid_df_fun(int_data, subset_vars)
   var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels')
-  test <- test_funs(var_labels, missing_labels)
+  len_labels <- length(valid_labels(var_labels, missing_labels))
 }
 
-# Get the labels from the random variable
-(labels <- reverse_name(var_labels))
+# Make 100% sure we get the results:
+stopifnot(len_labels <= 4)
+
+(labels <- reverse_name(var_labels)) 
+# Reverse vector names to objects and viceversa for 
+# later recoding.
+
 var_name <- names(valid_df)[3]
 
 try_df <-
@@ -99,9 +106,6 @@ try_df <-
   filter(complete.cases(.))
 
 try_df[var_name] <- labels[try_df[, var_name]]
-
-len_labels <- length(unique(try_df[, var_name]))
-
 
 ## Section: Get the title
 title_question <- attr(valid_df[, var_name], 'label') # Title
@@ -143,19 +147,25 @@ sentence_cut <- function(sentence, start, cutoff) {
 
 # How many lines should this new title have? Based on the cut off
 sentence_vecs <- ceiling(nchar(title_question) / cut)
-list_excerpts <- replicate(sentence_vecs, vector("character", 0))
 
 # Create an empty list with the amount of lines for the excerpts
 # to be stored.
+list_excerpts <- replicate(sentence_vecs, vector("character", 0))
 
 for (list_index in seq_along(list_excerpts)) {
+  
   non_empty_list <- Filter(f = function(x) !(is_empty(x)), list_excerpts)
   
+  # If this is the first line, the start should 1, otherwise the sum of all characters
+  # of previous lines
   start <- ifelse(list_index == 1, 1, sum(map_dbl(non_empty_list, nchar)))
   
+  # Because start gets updated every iteration, simply cut from start to start + cut
+  # The appropriate exceptions are added when its the first line of the plot.
   list_excerpts[[list_index]] <-
     sentence_cut(title_question, start, ifelse(list_index == 1, cut, start + cut))
 }
+
 
 final_title <- paste(list_excerpts, collapse = "\n")
 
