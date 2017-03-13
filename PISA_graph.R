@@ -55,7 +55,7 @@ subset_vars <-
   int_data %>%
   map_lgl(function(x)
     !is.null(attr(x, "labels")) &&
-    length(setdiff(names(attr(x, "labels")), missing_labels)) >= 1) %>%
+    length(setdiff(names(attr(x, "labels")), missing_labels)) >= 2) %>%
   which()
 
 # Sample 1 variable from the valid variables from subset_vars
