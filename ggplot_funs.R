@@ -1,5 +1,17 @@
 pisa_graph <- function(data, y_title, fill_var, length_labels) UseMethod("pisa_graph")
 
+#' Dispatch method for labeltwo class
+#'
+#' @param data Dataframe with labeltwo class
+#' @param y_title The title for the y variable
+#' @param fill_var The variable with which to fill the plot
+#' @param length_labels The length of the labels (this should change and is redundant because
+#'  the method is for labeltwo classes)
+#'
+#' @return A plot
+#' @export
+#'
+#' @examples
 pisa_graph.labeltwo <- function(data, y_title, fill_var, length_labels) {
   
   dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
@@ -21,6 +33,18 @@ pisa_graph.labeltwo <- function(data, y_title, fill_var, length_labels) {
     coord_flip()
 }
 
+#' Dispatch method for labeltwo class
+#'
+#' @param data Dataframe with labeltwo class
+#' @param y_title The title for the y variable
+#' @param fill_var The variable with which to fill the plot
+#' @param length_labels The length of the labels (this should change and is redundant because
+#'  the method is for labeltwo classes)
+#'
+#' @return A plot
+#' @export
+#'
+#' @examples
 pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
 
   dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
@@ -40,6 +64,18 @@ pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
     coord_flip()
 }
 
+#' Dispatch method for labeltwo class
+#'
+#' @param data Dataframe with labeltwo class
+#' @param y_title The title for the y variable
+#' @param fill_var The variable with which to fill the plot
+#' @param length_labels The length of the labels (this should change and is redundant because
+#'  the method is for labeltwo classes)
+#'
+#' @return A plot
+#' @export
+#'
+#' @examples
 pisa_graph.labelfour <- function(data, y_title, fill_var, length_labels) {
   pisa_graph.labelthree(data, y_title, fill_var, length_labels)
 }
