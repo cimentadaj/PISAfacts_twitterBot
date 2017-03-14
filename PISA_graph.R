@@ -6,22 +6,6 @@ library(countrycode)
 library(cimentadaj)
 library(lazyeval)
 
-# # Function recevies a variable with an attribute label
-# # and recodes the variable to availabe lables
-# # Returns the same variable with new codings
-# variable_labeller <- function(variable) {
-#   
-#   if (!is.null(attr(variable, "labels"))) {
-#     
-#     var_attr <- attributes(variable)
-#     label_changer <- reverse_name(attr(variable, "labels"))
-#     variable <- label_changer[variable]
-#     
-#     attributes(variable) <- var_attr
-#     variable
-#   }
-# }
-
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/PISA2015/CY6_MS_CMB_STU_QQQ.sav")
 
 country_var <- "cnt" # country variable name in lower case
@@ -111,63 +95,73 @@ try_df[var_name] <- labels[try_df[, var_name]]
 title_question <- attr(valid_df[, var_name], 'label') # Title
 cut <- 60 # Arbitrary cutoff
 
-# This function accepts a sentence (or better, a title) and cuts it between
-# the start and cutoff arguments ( just as substr). But if the cutoff is not an empty space
-# it will search +-1 index by index from the cutoff point until it reaches
-# the closest empty space. It will return from start to the new cutoff
-sentence_cut <- function(sentence, start, cutoff) {
+label_cutter <- function(variable_labels, cut) {
   
-  if (nchar(sentence) <= cutoff) return(substr(sentence, start, cutoff))
+  variable_label <- unname(variable_labels)
   
-  excerpt <- substr(sentence, start, cutoff)
-  actual_val <- cutoff
-  neg_val <- pos_val <- actual_val
-  
-  if (!substr(excerpt, actual_val, actual_val) == " ") {
+  # This function accepts a sentence (or better, a title) and cuts it between
+  # the start and cutoff arguments ( just as substr). But if the cutoff is not an empty space
+  # it will search +-1 index by index from the cutoff point until it reaches
+  # the closest empty space. It will return from start to the new cutoff
+  sentence_cut <- function(sentence, start, cutoff) {
     
-    expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
+    if (nchar(sentence) <= cutoff) return(substr(sentence, start, cutoff))
     
-    while (!any(expr)) {
-      neg_val <- neg_val - 1
-      pos_val <- pos_val + 1
+    excerpt <- substr(sentence, start, cutoff)
+    actual_val <- cutoff
+    neg_val <- pos_val <- actual_val
+    
+    if (!substr(excerpt, actual_val, actual_val) == " ") {
       
       expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
+      
+      while (!any(expr)) {
+        neg_val <- neg_val - 1
+        pos_val <- pos_val + 1
+        
+        expr <- c(substr(sentence, neg_val, neg_val) == " ", substr(sentence, pos_val, pos_val) == " ")
+      }
+      
+      cutoff <- ifelse(which(expr) == 1, neg_val, pos_val)
+      excerpt <- substr(sentence, start, cutoff)
+      return(excerpt)
+      
+    } else {
+      
+      return(excerpt)
+      
     }
-    
-    cutoff <- ifelse(which(expr) == 1, neg_val, pos_val)
-    excerpt <- substr(sentence, start, cutoff)
-    return(excerpt)
-    
-  } else {
-    
-    return(excerpt)
-    
   }
+  
+  # How many lines should this new title have? Based on the cut off
+  sentence_vecs <- ceiling(nchar(variable_label) / cut)
+  
+  # Create an empty list with the amount of lines for the excerpts
+  # to be stored.
+  list_excerpts <- replicate(sentence_vecs, vector("character", 0))
+  
+  for (list_index in seq_along(list_excerpts)) {
+    
+    non_empty_list <- Filter(f = function(x) !(is_empty(x)), list_excerpts)
+    
+    # If this is the first line, the start should 1, otherwise the sum of all characters
+    # of previous lines
+    start <- ifelse(list_index == 1, 1, sum(map_dbl(non_empty_list, nchar)))
+    
+    # Because start gets updated every iteration, simply cut from start to start + cut
+    # The appropriate exceptions are added when its the first line of the plot.
+    list_excerpts[[list_index]] <-
+      sentence_cut(variable_label, start, ifelse(list_index == 1, cut, start + cut))
+  }
+  
+  final_title <- paste(list_excerpts, collapse = "\n")
+  final_title
 }
 
-# How many lines should this new title have? Based on the cut off
-sentence_vecs <- ceiling(nchar(title_question) / cut)
-
-# Create an empty list with the amount of lines for the excerpts
-# to be stored.
-list_excerpts <- replicate(sentence_vecs, vector("character", 0))
-
-for (list_index in seq_along(list_excerpts)) {
-  
-  non_empty_list <- Filter(f = function(x) !(is_empty(x)), list_excerpts)
-  
-  # If this is the first line, the start should 1, otherwise the sum of all characters
-  # of previous lines
-  start <- ifelse(list_index == 1, 1, sum(map_dbl(non_empty_list, nchar)))
-  
-  # Because start gets updated every iteration, simply cut from start to start + cut
-  # The appropriate exceptions are added when its the first line of the plot.
-  list_excerpts[[list_index]] <-
-    sentence_cut(title_question, start, ifelse(list_index == 1, cut, start + cut))
-}
-
-
-final_title <- paste(list_excerpts, collapse = "\n")
+final_title <- label_cutter(title_question, 60)
+# You just introduced this function. Make sure it's working properly.
+# If it is, then you just have to loop this function over the labels.
+# So that they're cut correctly. Try with pa028q01na question.
 
 label_class <-
   c("2" = "labeltwo", '3' = "labelthree", '4' = "labelfour")[as.character(len_labels)]
