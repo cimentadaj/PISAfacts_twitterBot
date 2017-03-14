@@ -26,11 +26,15 @@ pisa_graph.labeltwo <- function(data, y_title, fill_var, length_labels) {
     geom_point(aes_string(colour = fill_var)) +
     labs(y = y_title, x = NULL) +
     scale_colour_discrete(name = NULL) +
-    theme(legend.position = "top") +
     guides(colour = guide_legend(
       nrow = ifelse(length_labels <= 2, 1,
              ifelse(length_labels <= 4 & length_labels > 2, 2, 3)))) +
-    coord_flip()
+    coord_flip() +
+    scale_y_continuous(limits = c(0, 100),
+                       labels = seq(0, 100, 20),
+                       breaks = seq(0, 100, 20)) +
+    theme_minimal() +
+    theme(legend.position = "top")
 }
 
 #' Dispatch method for labeltwo class
@@ -61,7 +65,9 @@ pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
     labs(y = y_title, x = NULL) +
     scale_colour_discrete(guide = F) +
     scale_size_continuous(guide = F) +
-    coord_flip()
+    coord_flip() +
+    theme_minimal() +
+    theme(legend.position = "top")
 }
 
 #' Dispatch method for labeltwo class
