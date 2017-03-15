@@ -77,27 +77,14 @@ while (len_labels > 4) {
 # Make 100% sure we get the results:
 stopifnot(len_labels <= 4)
 
-(labels <- reverse_name(var_labels)) 
-# Reverse vector names to objects and viceversa for 
-# later recoding.
-
-var_name <- names(valid_df)[3]
-
-try_df <-
-  valid_df %>%
-  filter(!is.na(region)) %>%
-  pisa.table(var_name, data = ., by = "cnt") %>%
-  filter(complete.cases(.))
-
-try_df[var_name] <- labels[try_df[, var_name]]
-
-## Section: Get the title
-title_question <- attr(valid_df[, var_name], 'label') # Title
-cut <- 60 # Arbitrary cutoff
-
-label_cutter <- function(variable_labels, cut) {
+# Function accepts a string and cuts the string in the cut argument.
+# If the cut is in the middle of the word, it will search for the closest
+# empty space. The function will automatically create new lines if the title
+# doesn't fit by adding `\n`. It will return the same string with `\n` divisions
+# in case the string exceeds the `cut` argument.
+label_cutter <- function(string, cut) {
   
-  variable_label <- unname(variable_labels)
+  variable_string <- unname(string)
   
   # This function accepts a sentence (or better, a title) and cuts it between
   # the start and cutoff arguments ( just as substr). But if the cutoff is not an empty space
@@ -134,7 +121,7 @@ label_cutter <- function(variable_labels, cut) {
   }
   
   # How many lines should this new title have? Based on the cut off
-  sentence_vecs <- ceiling(nchar(variable_label) / cut)
+  sentence_vecs <- ceiling(nchar(variable_string) / cut)
   
   # Create an empty list with the amount of lines for the excerpts
   # to be stored.
@@ -151,17 +138,34 @@ label_cutter <- function(variable_labels, cut) {
     # Because start gets updated every iteration, simply cut from start to start + cut
     # The appropriate exceptions are added when its the first line of the plot.
     list_excerpts[[list_index]] <-
-      sentence_cut(variable_label, start, ifelse(list_index == 1, cut, start + cut))
+      sentence_cut(variable_string, start, ifelse(list_index == 1, cut, start + cut))
   }
   
   final_title <- paste(list_excerpts, collapse = "\n")
   final_title
 }
 
-final_title <- label_cutter(title_question, 60)
-# You just introduced this function. Make sure it's working properly.
-# If it is, then you just have to loop this function over the labels.
-# So that they're cut correctly. Try with pa028q01na question.
+(labels <- reverse_name(var_labels)) 
+# Reverse vector names to objects and viceversa for 
+# later recoding.
+
+labels <- map_chr(labels, label_cutter, 40)
+
+var_name <- names(valid_df)[3]
+
+try_df <-
+  valid_df %>%
+  filter(!is.na(region)) %>%
+  pisa.table(var_name, data = ., by = "cnt") %>%
+  filter(complete.cases(.))
+
+try_df[var_name] <- labels[try_df[, var_name]]
+
+## Section: Get the title
+title_question <- attr(valid_df[, var_name], 'label') # Title
+cut <- 60 # Arbitrary cutoff
+
+final_title <- label_cutter(title_question, cut)
 
 label_class <-
   c("2" = "labeltwo", '3' = "labelthree", '4' = "labelfour")[as.character(len_labels)]
@@ -172,11 +176,7 @@ source("./ggplot_funs.R")
 (first_graph <-
   pisa_graph(data = try_df,
              y_title = final_title,
-             fill_var = var_name,
-             length_labels = len_labels))
-
-# TODO: You need to cut legend labels as you cut the
-# final_title
+             fill_var = var_name))
 
 setwd("/Users/cimentadaj/Downloads/twitter")
 ggsave("first_graph.png")

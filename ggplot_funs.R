@@ -1,55 +1,48 @@
-pisa_graph <- function(data, y_title, fill_var, length_labels) UseMethod("pisa_graph")
+pisa_graph <- function(data, y_title, fill_var) UseMethod("pisa_graph")
 
 #' Dispatch method for labeltwo class
 #'
 #' @param data Dataframe with labeltwo class
 #' @param y_title The title for the y variable
 #' @param fill_var The variable with which to fill the plot
-#' @param length_labels The length of the labels (this should change and is redundant because
-#'  the method is for labeltwo classes)
 #'
 #' @return A plot
 #' @export
 #'
 #' @examples
-pisa_graph.labeltwo <- function(data, y_title, fill_var, length_labels) {
+pisa_graph.labeltwo <- function(data, y_title, fill_var) {
   
   dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
                                x = quote(cnt),
                                y = as.name(fill_var),
                                z = quote(Percentage))), "cnt")
+  unique_cnt <- length(unique(data$cnt))
   
   data %>%
-  filter(cnt %in% sample(unique(cnt), 15)) %>%
-  mutate_(.dots = dots) %>%
-  ggplot(aes(cnt, Percentage)) +
+    filter(cnt %in% sample(unique(cnt), ifelse(unique_cnt >= 15, 15, 10))) %>%
+    mutate_(.dots = dots) %>%
+    ggplot(aes(cnt, Percentage)) +
     geom_point(aes_string(colour = fill_var)) +
     labs(y = y_title, x = NULL) +
     scale_colour_discrete(name = NULL) +
     guides(colour = guide_legend(
-      nrow = ifelse(length_labels <= 2, 1,
-             ifelse(length_labels <= 4 & length_labels > 2, 2, 3)))) +
+      nrow = 1)) +
     coord_flip() +
-    scale_y_continuous(limits = c(0, 100),
-                       labels = seq(0, 100, 20),
-                       breaks = seq(0, 100, 20)) +
     theme_minimal() +
     theme(legend.position = "top")
 }
 
-#' Dispatch method for labeltwo class
+#' Dispatch method for labelthree class
 #'
-#' @param data Dataframe with labeltwo class
+#' @param data Dataframe with labelthree class
 #' @param y_title The title for the y variable
 #' @param fill_var The variable with which to fill the plot
-#' @param length_labels The length of the labels (this should change and is redundant because
-#'  the method is for labeltwo classes)
 #'
 #' @return A plot
 #' @export
 #'
 #' @examples
-pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
+pisa_graph.labelthree <- function(data, y_title, fill_var) {
 
   dots <- setNames(list(interp(~ fct_reorder2(x, y, z),
                                x = quote(cnt),
@@ -57,7 +50,7 @@ pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
                                z = quote(Percentage))), "cnt")
   
   data %>%
-    filter(cnt %in% sample(unique(cnt), 15)) %>%
+    filter(cnt %in% sample(unique(cnt), ifelse(unique_cnt >= 15, 15, 10))) %>%
     mutate_(.dots = dots) %>%
     ggplot(aes_string("cnt", fill_var)) +
     geom_point(aes_string(colour = fill_var,
@@ -70,18 +63,16 @@ pisa_graph.labelthree <- function(data, y_title, fill_var, length_labels) {
     theme(legend.position = "top")
 }
 
-#' Dispatch method for labeltwo class
+#' Dispatch method for labelfour class
 #'
-#' @param data Dataframe with labeltwo class
+#' @param data Dataframe with labelfour class
 #' @param y_title The title for the y variable
 #' @param fill_var The variable with which to fill the plot
-#' @param length_labels The length of the labels (this should change and is redundant because
-#'  the method is for labeltwo classes)
 #'
 #' @return A plot
 #' @export
 #'
 #' @examples
-pisa_graph.labelfour <- function(data, y_title, fill_var, length_labels) {
-  pisa_graph.labelthree(data, y_title, fill_var, length_labels)
+pisa_graph.labelfour <- function(data, y_title, fill_var) {
+  pisa_graph.labelthree(data, y_title, fill_var)
 }
