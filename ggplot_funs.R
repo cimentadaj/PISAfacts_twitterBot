@@ -16,6 +16,7 @@ pisa_graph.labeltwo <- function(data, y_title, fill_var) {
                                x = quote(cnt),
                                y = as.name(fill_var),
                                z = quote(Percentage))), "cnt")
+  # To make sure we can randomly sample a number lower than the length
   unique_cnt <- length(unique(data$cnt))
   
   data %>%
@@ -48,6 +49,7 @@ pisa_graph.labelthree <- function(data, y_title, fill_var) {
                                x = quote(cnt),
                                y = as.name(fill_var),
                                z = quote(Percentage))), "cnt")
+  unique_cnt <- length(unique(data$cnt))
   
   data %>%
     filter(cnt %in% sample(unique(cnt), ifelse(unique_cnt >= 15, 15, 10))) %>%
