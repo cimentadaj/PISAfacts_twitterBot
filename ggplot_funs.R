@@ -26,8 +26,10 @@ pisa_graph.labeltwo <- function(data, y_title, fill_var) {
     geom_point(aes_string(colour = fill_var)) +
     labs(y = y_title, x = NULL) +
     scale_colour_discrete(name = NULL) +
-    guides(colour = guide_legend(
-      nrow = 1)) +
+    guides(colour = guide_legend(nrow = 1)) +
+    scale_y_continuous(limits = c(0, 100),
+                       breaks = seq(0, 100, 20),
+                       labels = paste0(seq(0, 100, 20), "%")) +
     coord_flip() +
     theme_minimal() +
     theme(legend.position = "top")

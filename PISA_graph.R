@@ -5,6 +5,7 @@ library(intsvy)
 library(countrycode)
 library(cimentadaj)
 library(lazyeval)
+library(twitteR) # devtools::install_github("geoffjentry/twitteR")
 
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/PISA2015/CY6_MS_CMB_STU_QQQ.sav")
 
@@ -153,6 +154,12 @@ labels <- map_chr(labels, label_cutter, 40)
 
 var_name <- names(valid_df)[3]
 
+# Create a record of all variables that have been used. Whenever
+# a graph has something wrong we wanna know which variable it was,
+# so we can reproduce the problem and fix it.
+new_var <- paste(var_name, Sys.Date(), sep = " - ")
+write_lines(new_var, path = "./all_variables.txt", append = T)
+
 try_df <-
   valid_df %>%
   filter(!is.na(region)) %>%
@@ -173,24 +180,28 @@ label_class <-
 class(try_df) <- c(class(try_df), label_class)
 
 source("./ggplot_funs.R")
-(first_graph <-
-  pisa_graph(data = try_df,
+pisa_graph(data = try_df,
              y_title = final_title,
-             fill_var = var_name))
+             fill_var = var_name)
+
+file <- tempfile()
+ggsave(file, device = "png")
+
+# Remember the authentification file that created the environment variables
+# are in "/Users/cimentadaj/Downloads/twitter/"
+old_dir <- getwd()
 
 setwd("/Users/cimentadaj/Downloads/twitter")
-ggsave("first_graph.png")
-
-# devtools::install_github("geoffjentry/twitteR")
-library(twitteR)
-
 api_key             <- Sys.getenv("twitter_api_key")
 api_secret          <- Sys.getenv("twitter_api_secret")
 access_token        <- Sys.getenv("twitter_access_token")
 access_token_secret <- Sys.getenv("twitter_access_token_secret")
+
 setup_twitter_oauth(api_key, api_secret, access_token, access_token_secret)
 
-tweet("", mediaPath = "./first_graph.png")
+tweet("", mediaPath = file)
+unlink(file)
+
 
 # to automate
 # https://www.r-bloggers.com/programming-a-twitter-bot-and-the-rescue-from-procrastination/
