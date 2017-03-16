@@ -56,8 +56,6 @@ valid_df_fun <- function(data, vars_select) {
 
 valid_df <- valid_df_fun(int_data, subset_vars)
 
-valid_df <- int_data[, c("cnt", "region", "option_math")]
-
 random_countries <- unique(valid_df$cnt)
 
 # Labels of the random variable from valid_df free of the missing labels
