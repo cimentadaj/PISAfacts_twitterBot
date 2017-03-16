@@ -153,7 +153,7 @@ label_cutter <- function(string, cut) {
 # Reverse vector names to objects and viceversa for 
 # later recoding.
 
-labels <- map_chr(labels, label_cutter, 40)
+labels <- map_chr(labels, label_cutter, 35)
 
 var_name <- names(valid_df)[3]
 
@@ -172,7 +172,7 @@ try_df <-
 try_df[var_name] <- labels[try_df[, var_name]]
 
 ## Section: Get the title
-title_question <- attr(valid_df[, var_name], 'label') # Title
+title_question <- attr(valid_df[[var_name]], 'label') # Title
 cut <- 60 # Arbitrary cutoff
 
 final_title <- label_cutter(title_question, cut)
