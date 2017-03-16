@@ -74,7 +74,7 @@ len_labels <- length(valid_labels(var_labels, missing_labels)) # length of uniqu
 # This is done because we don't want a lot of labels
 while (len_labels > 4) {
   valid_df <- valid_df_fun(int_data, subset_vars)
-  var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels')
+  var_labels <- attr(valid_df[[names(valid_df)[3]]], 'labels') # Get labels
   len_labels <- length(valid_labels(var_labels, missing_labels))
 }
 
