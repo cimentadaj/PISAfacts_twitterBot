@@ -7,6 +7,8 @@ library(cimentadaj)
 library(lazyeval)
 library(twitteR) # devtools::install_github("geoffjentry/twitteR")
 
+setwd("/Users/cimentadaj/Downloads/gitrepo/PISAfacts_twitterBot")
+
 pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/PISA2015/CY6_MS_CMB_STU_QQQ.sav")
 
 country_var <- "cnt" # country variable name in lower case
@@ -40,7 +42,8 @@ subset_vars <-
   int_data %>%
   map_lgl(function(x)
     !is.null(attr(x, "labels")) &&
-    length(setdiff(names(attr(x, "labels")), missing_labels)) >= 2) %>%
+    length(setdiff(names(attr(x, "labels")), missing_labels)) >= 2 &&
+    !typeof(x) %in% c("character", "factor")) %>%
   which()
 
 # Sample 1 variable from the valid variables from subset_vars
@@ -53,10 +56,12 @@ valid_df_fun <- function(data, vars_select) {
 
 valid_df <- valid_df_fun(int_data, subset_vars)
 
+valid_df <- int_data[, c("cnt", "region", "option_math")]
+
 random_countries <- unique(valid_df$cnt)
 
 # Labels of the random variable from valid_df free of the missing labels
-var_labels <- attr(valid_df[, names(valid_df)[3], drop = T], 'labels') # Get labels
+var_labels <- attr(valid_df[[names(valid_df)[3]]], 'labels') # Get labels
 
 # Get unique labels
 valid_labels <- function(variable_label, miss) {
