@@ -36,10 +36,11 @@ attr(int_data[[country_var]], "labels") <- country_labels
 
 # Get variables which have a 'labels' attribute
 # and have other labels besides the missing_labels
-# vector
+# vector. But also exclude variables which make no sense to graph
 
 subset_vars <- 
   int_data %>%
+  select(-adminmode) %>%
   map_lgl(function(x)
     !is.null(attr(x, "labels")) &&
     length(setdiff(names(attr(x, "labels")), missing_labels)) >= 2 &&
@@ -54,7 +55,7 @@ valid_df_fun <- function(data, vars_select) {
   as.data.frame()
 }
 
-valid_df <- valid_df_fun(int_data, subset_vars)
+valid_df <- valid_df_fun(int_data, ec022q07na)
 
 random_countries <- unique(valid_df$cnt)
 
