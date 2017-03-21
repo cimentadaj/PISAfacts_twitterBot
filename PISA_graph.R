@@ -55,7 +55,7 @@ valid_df_fun <- function(data, vars_select) {
   as.data.frame()
 }
 
-valid_df <- valid_df_fun(int_data, ec022q07na)
+valid_df <- valid_df_fun(int_data, subset_vars)
 
 random_countries <- unique(valid_df$cnt)
 
