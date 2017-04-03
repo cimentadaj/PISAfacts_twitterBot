@@ -40,7 +40,7 @@ attr(int_data[[country_var]], "labels") <- country_labels
 
 subset_vars <- 
   int_data %>%
-  select(-adminmode) %>%
+  select(-adminmode, -option_pq) %>%
   map_lgl(function(x)
     !is.null(attr(x, "labels")) &&
     length(setdiff(names(attr(x, "labels")), missing_labels)) >= 2 &&
