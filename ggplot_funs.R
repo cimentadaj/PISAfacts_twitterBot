@@ -64,7 +64,8 @@ pisa_graph.labelthree <- function(data, y_title, fill_var) {
     scale_size_continuous(guide = F) +
     coord_flip() +
     theme_minimal() +
-    theme(legend.position = "top")
+    theme(legend.position = "top",
+          axis.text = element_text(size = 10))
 }
 
 #' Dispatch method for labelfour class
