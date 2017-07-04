@@ -166,9 +166,8 @@ write_lines(new_var, path = "./all_variables.txt", append = T)
 
 try_df <-
   valid_df %>%
-  filter(!is.na(region)) %>%
-  pisa.table(var_name, data = ., by = "cnt") %>%
-  filter(complete.cases(.))
+  filter(complete.cases(.)) %>%
+  pisa.table(var_name, data = ., by = "cnt")
 
 try_df[var_name] <- labels[try_df[, var_name]]
 
