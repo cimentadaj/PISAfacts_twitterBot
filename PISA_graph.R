@@ -7,9 +7,16 @@ library(cimentadaj)
 library(lazyeval)
 library(twitteR) # devtools::install_github("geoffjentry/twitteR")
 
-setwd("/Users/cimentadaj/Downloads/gitrepo/PISAfacts_twitterBot")
+temp_dir <- tempdir()
+temp_file <- paste0(temp_dir, "/pisa.zip")
+link <- "http://vs-web-fs-1.oecd.org/pisa/PUF_SPSS_COMBINED_CMB_STU_QQQ.zip"
+download.file(link, temp_file)
 
-pisa_2015 <- read_spss("/Users/cimentadaj/Downloads/PISA/PISA2015/CY6_MS_CMB_STU_QQQ.sav")
+unzip(temp_file, exdir = temp_dir)
+
+setwd("/home/cimentadaj/PISAfacts_twitterBot")
+
+pisa_2015 <- read_spss(file.path(temp_dir, "CY6_MS_CMB_STU_QQQ.sav"))
 
 country_var <- "cnt" # country variable name in lower case
 country_types <- "iso3c" # type of country name
@@ -194,7 +201,7 @@ ggsave(file, device = "png")
 # are in "/Users/cimentadaj/Downloads/twitter/"
 old_dir <- getwd()
 
-setwd("/Users/cimentadaj/Downloads/twitter")
+setwd("/home/cimentadaj/twitter_auth")
 api_key             <- Sys.getenv("twitter_api_key")
 api_secret          <- Sys.getenv("twitter_api_secret")
 access_token        <- Sys.getenv("twitter_access_token")
