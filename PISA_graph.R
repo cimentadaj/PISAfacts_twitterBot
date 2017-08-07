@@ -3,7 +3,6 @@ library(forcats)
 library(haven)
 library(intsvy)
 library(countrycode)
-library(cimentadaj)
 library(lazyeval)
 library(twitteR) # devtools::install_github("geoffjentry/twitteR")
 
