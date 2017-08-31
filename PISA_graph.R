@@ -1,17 +1,19 @@
-library(tidyverse)
 library(forcats)
 library(haven)
 library(intsvy)
 library(countrycode)
 library(lazyeval)
+library(cimentadaj)
 library(twitteR) # devtools::install_github("geoffjentry/twitteR")
+library(tidyverse)
+
 
 temp_dir <- tempdir()
 temp_file <- paste0(temp_dir, "/pisa.zip")
 link <- "http://vs-web-fs-1.oecd.org/pisa/PUF_SPSS_COMBINED_CMB_STU_QQQ.zip"
 download.file(link, temp_file)
 
-unzip(temp_file, exdir = temp_dir)
+unzip(temp_file, "CY6_MS_CMB_STU_QQQ.sav", exdir = temp_dir)
 
 setwd("/home/cimentadaj/PISAfacts_twitterBot")
 
